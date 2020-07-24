@@ -3,7 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import json
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 options = webdriver.ChromeOptions()
 options.add_argument('--disable-extensions')
@@ -11,15 +11,18 @@ options.add_argument('--profile-directory=Default')
 options.add_argument("--incognito")
 options.add_argument("--disable-plugins-discovery")
 options.add_argument("--start-maximized")
+options.add_argument("--headless")
 options.add_experimental_option("excludeSwitches", ["enable-automation"])
 options.add_experimental_option('useAutomationExtension', False)
 driver = webdriver.Chrome(executable_path='./chromedriver_mac', options=options)
 
 sec1 = defaultdict(lambda: 0)
 sec2 = defaultdict(lambda: 0)
+number_set = defaultdict(lambda: 0)
+
 driver.get("https://www.taiwanlottery.com.tw/lotto/superlotto638/history2.aspx")
 
-for year in range(107, 110):
+for year in range(103, 110):
     driver.execute_script("document.querySelector('#SuperLotto638Control_history1_radYM').click();")
     print("year:", year)
     driver.execute_script("document.querySelector('#SuperLotto638Control_history1_dropYear').value=arguments[0]", year)
@@ -40,6 +43,9 @@ for year in range(107, 110):
             print(numbers)
             for k in range(0, 6):
                 sec1[numbers[k]]+=1
+                for l in range(k+1, 6):
+                        number_set[(numbers[k], numbers[l])] += 1
+            print(dict(number_set))
             sec2[numbers[6]]+=1
         print(dict(sec1))
         print(dict(sec2))
@@ -47,3 +53,5 @@ for year in range(107, 110):
 
 print(json.dumps(dict(sec1), indent = 4))
 print(json.dumps(dict(sec2), indent = 4))
+json_dict = {str(k):v for k, v in number_set.items()}
+print(json.dumps(OrderedDict(sorted(json_dict.items(), key=lambda item: item[1], reverse=True)), indent=4))
